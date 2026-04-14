@@ -188,8 +188,8 @@ function Navigation({ view, setView, onAdminUnlock, isAdmin }) {
               e.target.nextElementSibling.style.display = 'block';
             }}
           />
-          <Book className="w-5 h-5 hidden text-orange-600" />
-          <span className="font-bold tracking-tight text-lg text-orange-600">Sharda Yearbook</span>
+          <Book className="w-5 h-5 hidden text-black" />
+          <span className="font-bold tracking-tight text-lg text-black">Sharda Yearbook</span>
         </div>
         
         <div className="flex gap-4 sm:gap-6 text-sm font-medium text-zinc-500">
@@ -262,7 +262,7 @@ function DirectoryView({ profiles, onSelectProfile }) {
       <header className="mb-10 flex flex-col items-center text-center">
         <h2 className="text-4xl font-black tracking-tight mb-3 uppercase">BATCH 2022 - 26</h2>
         <p className="text-zinc-500 font-medium tracking-wide uppercase text-sm">Sharda University</p>
-        <div className="w-12 h-1 bg-orange-600 mt-8 mb-8"></div>
+        <div className="w-12 h-1 bg-black mt-8 mb-8"></div>
       </header>
 
       {/* Category Filter */}
@@ -296,26 +296,30 @@ function DirectoryView({ profiles, onSelectProfile }) {
             <div 
               key={profile.id}
               onClick={() => onSelectProfile(profile)}
-              className="bg-white rounded-xl border border-zinc-200 shadow-sm hover:shadow-md hover:border-orange-300 transition-all cursor-pointer group flex flex-col overflow-hidden aspect-[5/8]"
+              className="bg-white rounded-xl border border-zinc-200 shadow-sm hover:shadow-md hover:border-black transition-all cursor-pointer group flex flex-col overflow-hidden h-full"
             >
-              {/* Image Section (70% of Square Card) */}
-              <div className="w-full h-full bg-zinc-100 overflow-hidden relative">
+              {/* Image Section: Perfectly Square */}
+              <div className="w-full aspect-square bg-zinc-100 overflow-hidden relative shrink-0">
                 <img 
                   src={profile.photoUrl || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.name}`} 
                   alt={profile.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
                   onError={(e) => { e.target.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.name}`; }}
                 />
                 <div className="absolute inset-0 ring-1 ring-inset ring-black/5 pointer-events-none"></div>
               </div>
               
-              {/* Text Section (30% of Square Card) */}
-              <div className="h-[30%] p-2 flex flex-col items-center justify-center text-center bg-white">
+              {/* Text Section */}
+              <div className="p-3 flex flex-col items-center justify-center text-center bg-white w-full flex-grow">
                 <h3 className="font-bold text-sm sm:text-base text-zinc-900 line-clamp-1 w-full">
                   {profile.name}
                 </h3>
-                <p className="text-[9px] sm:text-[10px] font-semibold text-orange-600 uppercase tracking-wider mt-0.5 line-clamp-1 w-full">
+                <p className="text-[9px] sm:text-[10px] font-bold text-black uppercase tracking-wider mt-0.5 line-clamp-1 w-full">
                   {profile.category || 'Student'}
+                </p>
+                {/* Quote: Hidden on mobile (default), visible on medium screens (md:block) */}
+                <p className="hidden md:-webkit-box md:line-clamp-3 text-[10px] md:text-xs text-zinc-500 italic mt-2 w-full px-1">
+                  "{profile.quote}"
                 </p>
               </div>
             </div>
@@ -477,8 +481,8 @@ function PortalView({ profiles, user }) {
     return (
       <div className="max-w-md mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-zinc-200 text-center">
-          <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <User className="w-8 h-8 text-orange-600" />
+          <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <User className="w-8 h-8 text-black" />
           </div>
           <h2 className="text-2xl font-semibold tracking-tight mb-2">Student Portal</h2>
           <p className="text-sm text-zinc-500 mb-8 px-4 leading-relaxed">
@@ -533,13 +537,13 @@ function PortalView({ profiles, user }) {
               <img 
                 src={existingPhotoUrl || `https://api.dicebear.com/7.x/notionists/svg?seed=${existingProfile.name}`} 
                 alt={existingProfile.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-top"
                 onError={(e) => { e.target.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${existingProfile.name}`; }}
               />
               <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-xl"></div>
             </div>
             <h3 className="text-2xl font-bold text-zinc-900">{existingProfile.name}</h3>
-            <p className="text-sm font-semibold text-orange-600 uppercase tracking-widest mt-1">{existingProfile.category}</p>
+            <p className="text-sm font-bold text-black uppercase tracking-widest mt-1">{existingProfile.category}</p>
           </div>
         )}
 
@@ -547,7 +551,7 @@ function PortalView({ profiles, user }) {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">{isEditing ? 'Update Details' : 'Create Profile'}</h3>
             {isEditing && (
-               <span className={`text-xs font-bold px-3 py-1 rounded-full ${hasReachedEditLimit ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+               <span className={`text-xs font-bold px-3 py-1 rounded-full ${hasReachedEditLimit ? 'bg-red-100 text-red-700' : 'bg-zinc-200 text-zinc-800'}`}>
                  Edits: {editCount} / {MAX_EDITS}
                </span>
             )}
@@ -568,7 +572,7 @@ function PortalView({ profiles, user }) {
               <div 
                 className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center transition-all text-center relative overflow-hidden group
                   ${hasReachedEditLimit ? '' : 'cursor-pointer'}
-                  ${isDragging ? 'border-orange-500 bg-orange-50' : 'border-zinc-200 hover:border-orange-300 hover:bg-orange-50/30'}
+                  ${isDragging ? 'border-black bg-zinc-100' : 'border-zinc-200 hover:border-black hover:bg-zinc-50'}
                   ${(photoPreview || existingPhotoUrl) && !photoFile ? 'py-4' : 'py-8'}
                 `}
                 onDragOver={handleDragOver}
@@ -591,11 +595,11 @@ function PortalView({ profiles, user }) {
                       <img 
                         src={photoPreview || existingPhotoUrl} 
                         alt="Preview" 
-                        className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
+                        className="w-full h-full object-cover object-top group-hover:opacity-75 transition-opacity"
                       />
                     </div>
                     <p className="text-sm font-medium text-zinc-700">Click or drag to change photo</p>
-                    {photoFile && <p className="text-xs text-orange-600 mt-1 font-semibold">New photo ready to save</p>}
+                    {photoFile && <p className="text-xs text-black mt-1 font-semibold">New photo ready to save</p>}
                   </div>
                 ) : (
                   <>
@@ -617,7 +621,7 @@ function PortalView({ profiles, user }) {
                 type="text" 
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full border-b-2 border-zinc-200 bg-transparent py-2 focus:border-orange-500 outline-none transition-colors"
+                className="w-full border-b-2 border-zinc-200 bg-transparent py-2 focus:border-black outline-none transition-colors"
                 placeholder="John Doe"
                 required
                 disabled={hasReachedEditLimit}
@@ -631,7 +635,7 @@ function PortalView({ profiles, user }) {
               <select 
                 value={formData.category}
                 onChange={(e) => setFormData({...formData, category: e.target.value})}
-                className="w-full border-b-2 border-zinc-200 bg-transparent py-2 focus:border-orange-500 outline-none transition-colors appearance-none cursor-pointer"
+                className="w-full border-b-2 border-zinc-200 bg-transparent py-2 focus:border-black outline-none transition-colors appearance-none cursor-pointer"
                 disabled={hasReachedEditLimit}
               >
                 {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
@@ -646,7 +650,7 @@ function PortalView({ profiles, user }) {
               <textarea 
                 value={formData.quote}
                 onChange={(e) => setFormData({...formData, quote: e.target.value})}
-                className="w-full border-b-2 border-zinc-200 bg-transparent py-2 focus:border-orange-500 outline-none transition-colors resize-none h-24"
+                className="w-full border-b-2 border-zinc-200 bg-transparent py-2 focus:border-black outline-none transition-colors resize-none h-24"
                 placeholder="Leave your mark on the batch of 2026..."
                 maxLength={150}
                 required
@@ -711,7 +715,7 @@ function AdminDashboard({ profiles }) {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Shield className="w-6 h-6 text-orange-600" /> System Administration
+            <Shield className="w-6 h-6 text-black" /> System Administration
           </h2>
           <p className="text-sm text-zinc-500">Manage all yearbook profiles ({profiles.length} total)</p>
         </div>
@@ -857,23 +861,23 @@ function ProfileModal({ profile, onClose }) {
             <img 
               src={profile.photoUrl || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.name}`} 
               alt={profile.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-top"
               onError={(e) => { e.target.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.name}`; }}
             />
             <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-2xl"></div>
           </div>
           
           <h2 className="text-3xl font-black tracking-tight mb-1 text-zinc-900">{profile.name}</h2>
-          <p className="text-sm font-bold tracking-widest text-orange-600 uppercase mb-8">
+          <p className="text-sm font-bold tracking-widest text-black uppercase mb-8">
             {profile.category}
           </p>
           
           <div className="relative w-full">
-            <Quote className="w-8 h-8 text-orange-100 absolute -top-4 -left-2 transform -scale-x-100" />
+            <Quote className="w-8 h-8 text-zinc-100 absolute -top-4 -left-2 transform -scale-x-100" />
             <p className="text-lg text-zinc-700 font-serif italic leading-relaxed px-6 z-10 relative text-justify">
               "{profile.quote}"
             </p>
-            <Quote className="w-8 h-8 text-orange-100 absolute -bottom-4 -right-2" />
+            <Quote className="w-8 h-8 text-zinc-100 absolute -bottom-4 -right-2" />
           </div>
         </div>
       </div>
@@ -893,7 +897,7 @@ function Footer() {
           href="https://github.com/Deepayan-Thakur" 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="group bg-zinc-50 border border-zinc-200 rounded-2xl p-4 flex items-center gap-4 hover:border-orange-300 hover:bg-orange-50/30 transition-all w-full sm:w-64 mx-auto sm:mx-0"
+          className="group bg-zinc-50 border border-zinc-200 rounded-2xl p-4 flex items-center gap-4 hover:border-black hover:bg-zinc-50 transition-all w-full sm:w-64 mx-auto sm:mx-0"
         >
           <div className="w-12 h-12 bg-zinc-200 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
             <img src="https://github.com/Deepayan-Thakur.png" alt="Deepayan Thakur" className="w-full h-full object-cover"/>
@@ -910,7 +914,7 @@ function Footer() {
           href="https://github.com/Joshinx17" 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="group bg-zinc-50 border border-zinc-200 rounded-2xl p-4 flex items-center gap-4 hover:border-orange-300 hover:bg-orange-50/30 transition-all w-full sm:w-64 mx-auto sm:mx-0"
+          className="group bg-zinc-50 border border-zinc-200 rounded-2xl p-4 flex items-center gap-4 hover:border-black hover:bg-zinc-50 transition-all w-full sm:w-64 mx-auto sm:mx-0"
         >
           <div className="w-12 h-12 bg-zinc-200 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
             <img src="https://github.com/Joshinx17.png" alt="Joshin Saju" className="w-full h-full object-cover"/>
