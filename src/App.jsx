@@ -189,7 +189,7 @@ function Navigation({ view, setView, onAdminUnlock, isAdmin }) {
             }}
           />
           <Book className="w-5 h-5 hidden text-black" />
-          <span className="font-bold tracking-tight text-lg text-black">Sharda Yearbook</span>
+          <span className="font-bold tracking-tight text-lg text-black">Yearbook</span>
         </div>
         
         <div className="flex gap-4 sm:gap-6 text-sm font-medium text-zinc-500">
