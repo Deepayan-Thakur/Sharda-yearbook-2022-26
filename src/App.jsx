@@ -291,29 +291,31 @@ function DirectoryView({ profiles, onSelectProfile }) {
           <p className="text-sm mt-1">Be the first to add your profile via the Student Portal.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-5 px-2 sm:px-4">
           {filteredProfiles.map((profile) => (
             <div 
               key={profile.id}
               onClick={() => onSelectProfile(profile)}
-              className="bg-white rounded-xl sm:rounded-2xl border border-zinc-100 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all cursor-pointer group flex flex-col h-full overflow-hidden"
+              className="bg-white rounded-xl border border-zinc-200 shadow-sm hover:shadow-md hover:border-orange-300 transition-all cursor-pointer group flex flex-col overflow-hidden aspect-[5/8]"
             >
-              {/* Square Image Bleeding to Edges */}
-              <div className="w-full aspect-square bg-zinc-100 overflow-hidden relative">
+              {/* Image Section (70% of Square Card) */}
+              <div className="w-full h-full bg-zinc-100 overflow-hidden relative">
                 <img 
                   src={profile.photoUrl || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.name}`} 
                   alt={profile.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   onError={(e) => { e.target.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.name}`; }}
                 />
+                <div className="absolute inset-0 ring-1 ring-inset ring-black/5 pointer-events-none"></div>
               </div>
-              <div className="p-3 sm:p-5 flex flex-col flex-grow">
-                <h3 className="font-bold text-sm sm:text-xl mb-1 text-zinc-900 line-clamp-1 sm:line-clamp-2">{profile.name}</h3>
-                <p className="text-[10px] sm:text-xs font-semibold text-orange-600 uppercase tracking-wider mb-2 sm:mb-4 line-clamp-1">{profile.category || 'Student'}</p>
-                
-                {/* Full Quote Visible & Justified */}
-                <p className="text-[11px] sm:text-sm text-zinc-600 italic font-serif mt-auto leading-relaxed border-l-2 border-orange-200 pl-2 sm:pl-3 py-1 text-justify">
-                  "{profile.quote}"
+              
+              {/* Text Section (30% of Square Card) */}
+              <div className="h-[30%] p-2 flex flex-col items-center justify-center text-center bg-white">
+                <h3 className="font-bold text-sm sm:text-base text-zinc-900 line-clamp-1 w-full">
+                  {profile.name}
+                </h3>
+                <p className="text-[9px] sm:text-[10px] font-semibold text-orange-600 uppercase tracking-wider mt-0.5 line-clamp-1 w-full">
+                  {profile.category || 'Student'}
                 </p>
               </div>
             </div>
