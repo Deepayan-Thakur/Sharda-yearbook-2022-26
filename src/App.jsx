@@ -13,6 +13,7 @@ import {
   onSnapshot, 
   doc, 
   setDoc,
+  addDoc,
   deleteDoc,
   serverTimestamp,
   updateDoc
@@ -33,7 +34,9 @@ import {
   Edit,
   Trash2,
   Plus,
-  Filter
+  Filter,
+  Lock,
+  MessageSquare
 } from 'lucide-react';
 
 // --- Firebase Initialization using Environment Variables ---
@@ -144,6 +147,8 @@ export default function App() {
         <ProfileModal 
           profile={selectedProfile} 
           onClose={() => setSelectedProfile(null)} 
+          user={user}
+          profiles={profiles}
         />
       )}
     </div>
@@ -189,7 +194,7 @@ function Navigation({ view, setView, onAdminUnlock, isAdmin }) {
             }}
           />
           <Book className="w-5 h-5 hidden text-black" />
-          <span className="font-bold tracking-tight text-lg text-black">Yearbook</span>
+          <span className="font-bold tracking-tight text-lg text-black">Sharda Yearbook</span>
         </div>
         
         <div className="flex gap-4 sm:gap-6 text-sm font-medium text-zinc-500">
@@ -833,13 +838,71 @@ function AdminDashboard({ profiles }) {
   );
 }
 
-function ProfileModal({ profile, onClose }) {
+function ProfileModal({ profile, onClose, user, profiles }) {
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = 'unset';
     };
   }, []);
+
+  const [notes, setNotes] = useState([]);
+  const [newNote, setNewNote] = useState('');
+  const [noteError, setNoteError] = useState('');
+  const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+
+  // Check if the current logged-in user owns the profile being viewed
+  const isOwnProfile = user && user.uid === profile.id;
+  const isLoggedIn = user && !user.isAnonymous && user.email;
+
+  // Fetch private notes if the user is looking at their own profile
+  useEffect(() => {
+    if (isOwnProfile && db) {
+      const notesRef = collection(db, 'artifacts', appId, 'public', 'data', 'yearbook_profiles', profile.id, 'private_notes');
+      const unsubscribe = onSnapshot(notesRef, (snapshot) => {
+        const fetchedNotes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        fetchedNotes.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
+        setNotes(fetchedNotes);
+      });
+      return () => unsubscribe();
+    }
+  }, [isOwnProfile, profile.id]);
+
+  // Calculate real word count dynamically
+  const wordCount = newNote.trim().split(/\s+/).filter(w => w.length > 0).length;
+
+  const handleAddNote = async (e) => {
+    e.preventDefault();
+    setNoteError('');
+
+    if (wordCount === 0) return;
+    if (wordCount > 200) {
+      setNoteError('Maximum 200 words allowed.');
+      return;
+    }
+
+    setIsSubmittingNote(true);
+    try {
+      // Use the sender's configured profile name if they have one, otherwise fallback to email
+      const currentUserProfile = profiles.find(p => p.id === user.uid);
+      const authorName = currentUserProfile ? currentUserProfile.name : user.email;
+
+      const notesRef = collection(db, 'artifacts', appId, 'public', 'data', 'yearbook_profiles', profile.id, 'private_notes');
+      await addDoc(notesRef, {
+        text: newNote.trim(),
+        fromName: authorName,
+        fromUid: user.uid,
+        timestamp: serverTimestamp()
+      });
+      setNewNote('');
+      alert(isOwnProfile ? 'Personal note saved!' : 'Private note sent successfully!');
+    } catch (err) {
+      console.error(err);
+      setNoteError('Failed to send note. Check connection.');
+    } finally {
+      setIsSubmittingNote(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -848,37 +911,140 @@ function ProfileModal({ profile, onClose }) {
         onClick={onClose}
       ></div>
       
-      <div className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 border border-zinc-200/50">
+      {/* Scrollable Container */}
+      <div className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 border border-zinc-200/50 flex flex-col max-h-[90vh]">
+        
+        {/* Fixed Close Button */}
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded-full transition-colors z-10"
+          className="absolute top-4 right-4 p-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded-full transition-colors z-20"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="p-10 flex flex-col items-center text-center">
-          <div className="w-40 h-40 rounded-2xl overflow-hidden mb-6 border-4 border-white shadow-xl relative">
-            <img 
-              src={profile.photoUrl || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.name}`} 
-              alt={profile.name}
-              className="w-full h-full object-cover object-top"
-              onError={(e) => { e.target.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.name}`; }}
-            />
-            <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-2xl"></div>
-          </div>
+        {/* Scrollable Content Area */}
+        <div className="overflow-y-auto flex-grow flex flex-col">
           
-          <h2 className="text-3xl font-black tracking-tight mb-1 text-zinc-900">{profile.name}</h2>
-          <p className="text-sm font-bold tracking-widest text-black uppercase mb-8">
-            {profile.category}
-          </p>
-          
-          <div className="relative w-full">
-            <Quote className="w-8 h-8 text-zinc-100 absolute -top-4 -left-2 transform -scale-x-100" />
-            <p className="text-lg text-zinc-700 font-serif italic leading-relaxed px-6 z-10 relative text-justify">
-              "{profile.quote}"
+          {/* Profile Main Info */}
+          <div className="p-8 sm:p-10 pb-8 flex flex-col items-center text-center shrink-0">
+            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden mb-6 border-4 border-white shadow-xl relative">
+              <img 
+                src={profile.photoUrl || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.name}`} 
+                alt={profile.name}
+                className="w-full h-full object-cover object-top"
+                onError={(e) => { e.target.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.name}`; }}
+              />
+              <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-2xl"></div>
+            </div>
+            
+            <h2 className="text-3xl font-black tracking-tight mb-1 text-zinc-900">{profile.name}</h2>
+            <p className="text-sm font-bold tracking-widest text-black uppercase mb-8">
+              {profile.category}
             </p>
-            <Quote className="w-8 h-8 text-zinc-100 absolute -bottom-4 -right-2" />
+            
+            <div className="relative w-full">
+              <Quote className="w-8 h-8 text-zinc-100 absolute -top-4 -left-2 transform -scale-x-100" />
+              <p className="text-base sm:text-lg text-zinc-700 font-serif italic leading-relaxed px-4 sm:px-6 z-10 relative text-justify">
+                "{profile.quote}"
+              </p>
+              <Quote className="w-8 h-8 text-zinc-100 absolute -bottom-4 -right-2" />
+            </div>
           </div>
+
+          {/* Private Notes Section (Slambook) */}
+          <div className="bg-zinc-50 p-6 sm:p-8 border-t border-zinc-100 shrink-0">
+            {isOwnProfile ? (
+              // View for the Profile Owner: See received notes AND add notes to self
+              <div>
+                <h4 className="font-bold flex items-center justify-center gap-2 mb-6 text-zinc-900">
+                  <Lock className="w-4 h-4 text-zinc-500" /> Your Private Space
+                </h4>
+                
+                {/* Form to add note to self */}
+                <form onSubmit={handleAddNote} className="mb-6">
+                  <p className="text-xs text-zinc-500 mb-2 font-bold uppercase tracking-wider">Write a note to yourself</p>
+                  <textarea
+                    className="w-full bg-white border border-zinc-200 rounded-xl p-3 sm:p-4 text-sm focus:border-black outline-none resize-none h-24 mb-2 shadow-sm"
+                    placeholder="Write a personal note or diary entry..."
+                    value={newNote}
+                    onChange={e => setNewNote(e.target.value)}
+                  ></textarea>
+                  
+                  <div className="flex justify-between items-center mb-4 px-1">
+                    <span className={`text-xs font-bold ${wordCount > 200 ? 'text-red-500' : 'text-zinc-400'}`}>
+                      {wordCount} / 200 words
+                    </span>
+                    {noteError && <span className="text-xs text-red-500 font-bold">{noteError}</span>}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmittingNote || wordCount > 200 || wordCount === 0}
+                    className="w-full bg-black text-white py-2.5 rounded-xl font-bold text-sm hover:bg-zinc-800 transition-all disabled:opacity-50"
+                  >
+                    {isSubmittingNote ? 'Saving...' : 'Save Personal Note'}
+                  </button>
+                </form>
+
+                <div className="w-full h-px bg-zinc-200 my-6"></div>
+
+                <p className="text-xs text-zinc-500 mb-4 font-bold uppercase tracking-wider">Notes & Slambook Timeline</p>
+                {notes.length === 0 ? (
+                  <p className="text-center text-zinc-500 text-sm">You haven't received or written any notes yet.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {notes.map(note => (
+                      <div key={note.id} className="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-zinc-200 text-left">
+                        <p className="text-sm text-zinc-700 italic mb-3 break-words">"{note.text}"</p>
+                        <p className="text-xs font-bold text-zinc-900">— {note.fromUid === user.uid ? 'You' : note.fromName}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : isLoggedIn ? (
+              // View for logged in users: Write a note
+              <form onSubmit={handleAddNote}>
+                <h4 className="font-bold flex items-center justify-center gap-2 mb-2 text-zinc-900">
+                  <MessageSquare className="w-4 h-4 text-black" /> Leave a Private Note
+                </h4>
+                <p className="text-xs text-zinc-500 text-center mb-5">
+                  Only <strong>{profile.name}</strong> will be able to read this message.
+                </p>
+
+                <textarea
+                  className="w-full bg-white border border-zinc-200 rounded-xl p-3 sm:p-4 text-sm focus:border-black outline-none resize-none h-28 mb-2 shadow-sm"
+                  placeholder={`Write a message for ${profile.name}...`}
+                  value={newNote}
+                  onChange={e => setNewNote(e.target.value)}
+                ></textarea>
+                
+                <div className="flex justify-between items-center mb-4 px-1">
+                  <span className={`text-xs font-bold ${wordCount > 200 ? 'text-red-500' : 'text-zinc-400'}`}>
+                    {wordCount} / 200 words
+                  </span>
+                  {noteError && <span className="text-xs text-red-500 font-bold">{noteError}</span>}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmittingNote || wordCount > 200 || wordCount === 0}
+                  className="w-full bg-black text-white py-3 rounded-xl font-bold text-sm hover:bg-zinc-800 transition-all disabled:opacity-50"
+                >
+                  {isSubmittingNote ? 'Sending...' : 'Send Private Note'}
+                </button>
+              </form>
+            ) : (
+              // View for guests
+              <div className="text-center py-4">
+                <Lock className="w-6 h-6 text-zinc-300 mx-auto mb-3" />
+                <p className="text-zinc-500 text-sm">
+                  Please sign in via the Student Portal to leave a private note for {profile.name}.
+                </p>
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
     </div>
